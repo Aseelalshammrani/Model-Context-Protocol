@@ -33,7 +33,9 @@ class CliChat(Chat):
         return await self.doc_client.get_prompt(command, {"doc_id": doc_id})
 
     async def _extract_resources(self, query: str) -> str:
-        mentions = [word[1:] for word in query.split() if word.startswith("@")]
+        mentions = [
+            word[1:].rstrip(",;:!?)") for word in query.split() if word.startswith("@")
+        ]
 
         doc_ids = await self.list_docs_ids()
         mentioned_docs: list[Tuple[str, str]] = []
@@ -53,7 +55,14 @@ class CliChat(Chat):
             return False
 
         words = query.split()
-        command = words[0].replace("/", "")
+        command = words[0][1:]
+
+        prompts = await self.list_prompts()
+        if command not in {p.name for p in prompts}:
+            return False
+
+        if len(words) < 2:
+            raise ValueError(f"Usage: /{command} <doc_id>")
 
         messages = await self.doc_client.get_prompt(
             command, {"doc_id": words[1]}
