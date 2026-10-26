@@ -31,7 +31,8 @@ class CommandAutoSuggest(AutoSuggest):
 
             if cmd in self.prompt_dict:
                 prompt = self.prompt_dict[cmd]
-                return Suggestion(f" {prompt.arguments[0].name}")
+                if prompt.arguments:
+                    return Suggestion(f" {prompt.arguments[0].name}")
 
         return None
 
@@ -98,14 +99,12 @@ class UnifiedCompleter(Completer):
             if len(parts) >= 2:
                 doc_prefix = parts[-1]
 
-                for resource in self.resources:
-                    if "id" in resource and resource["id"].lower().startswith(
-                        doc_prefix.lower()
-                    ):
+                for resource_id in self.resources:
+                    if resource_id.lower().startswith(doc_prefix.lower()):
                         yield Completion(
-                            resource["id"],
+                            resource_id,
                             start_position=-len(doc_prefix),
-                            display=resource["id"],
+                            display=resource_id,
                         )
                 return
 
@@ -206,5 +205,7 @@ class CliApp:
                 response = await self.agent.run(user_input)
                 print(f"\nResponse:\n{response}")
 
-            except KeyboardInterrupt:
+            except (KeyboardInterrupt, EOFError):
                 break
+            except Exception as e:
+                print(f"\nError: {e}")

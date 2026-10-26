@@ -29,10 +29,11 @@ async def main():
     server_scripts = sys.argv[1:]
     clients = {}
 
+    use_uv = os.getenv("USE_UV", "0") == "1"
     command, args = (
         ("uv", ["run", "mcp_server.py"])
-        if os.getenv("USE_UV", "0") == "1"
-        else ("python", ["mcp_server.py"])
+        if use_uv
+        else (sys.executable, ["mcp_server.py"])
     )
 
     async with AsyncExitStack() as stack:
@@ -44,7 +45,10 @@ async def main():
         for i, server_script in enumerate(server_scripts):
             client_id = f"client_{i}_{server_script}"
             client = await stack.enter_async_context(
-                MCPClient(command="uv", args=["run", server_script])
+                MCPClient(
+                    command="uv" if use_uv else sys.executable,
+                    args=["run", server_script] if use_uv else [server_script],
+                )
             )
             clients[client_id] = client
 

@@ -40,6 +40,9 @@ def edit_document (
     if doc_id not in docs:
         raise ValueError(f"Doc with id {doc_id} not found")
 
+    if not old_str or old_str not in docs[doc_id]:
+        raise ValueError(f"old_str not found in doc {doc_id}")
+
     docs[doc_id] = docs[doc_id].replace(old_str,new_str)
    
 

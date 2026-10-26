@@ -67,8 +67,10 @@ class MCPClient:
         if isinstance(resource , types.TextResourceContents):
             if resource.mimeType == "application/json":
                 return json.loads(resource.text)
-            return resource.text 
-        
+            return resource.text
+
+        raise ValueError(f"Resource {uri} is not text content")
+
 
     async def cleanup(self):
         await self._exit_stack.aclose()
